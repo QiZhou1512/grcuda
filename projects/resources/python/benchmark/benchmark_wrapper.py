@@ -107,6 +107,8 @@ def execute_cuda_benchmark(benchmark, size, block_size, exec_policy, num_iter, d
 
     benchmark_cmd = CUDA_CMD.format(benchmark, exec_policy, size, block_size["block_size_1d"],
                                     block_size["block_size_2d"], num_iter, num_blocks, output_path)
+    print("comando eseguito: ")
+    print(benchmark_cmd)
     start = System.nanoTime()
     result = subprocess.run(benchmark_cmd,
                             shell=True,

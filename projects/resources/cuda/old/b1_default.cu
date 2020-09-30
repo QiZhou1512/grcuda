@@ -82,7 +82,7 @@ int main(int argc, char *argv[]) {
     if (debug) std::cout << "init=" << (float) chrono::duration_cast<chrono::microseconds>(end - start).count() / 1000 << " ms" << std::endl;
 
     // Print header;
-    if (!debug) std::cout << "num_iter,gpu_result,total_time_sec,overhead_sec,computation_sec" << std::endl;
+    if (!debug) std::cout << "num_iter,gpu_result,total_time_sec,overhead_sec,computation_sec here" << std::endl;
 	
     float tot = 0;
     for (int i = 0; i < num_executions; i++) {
