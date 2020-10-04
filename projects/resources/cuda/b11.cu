@@ -54,13 +54,14 @@ __global__ void reduceMulti(const float *x, const float *y, float *z, int N)
 
 void Benchmark11::alloc()
 {
+    cudaSetDevice(0);            // Set device 0 as current
     err = cudaMallocManaged(&x, sizeof(float) * N);
-    err = cudaMallocManaged(&y, sizeof(float) * N);
     err = cudaMallocManaged(&x1, sizeof(float) * N);
+    err = cudaStreamCreate(&s1);
+    cudaSetDevice(1);            // Set device 1 as current
+    err = cudaMallocManaged(&y, sizeof(float) * N);
     err = cudaMallocManaged(&y1, sizeof(float) * N);
     err = cudaMallocManaged(&res, sizeof(float));
-
-    err = cudaStreamCreate(&s1);
     err = cudaStreamCreate(&s2);
 }
 
@@ -93,88 +94,30 @@ void Benchmark11::execute_sync(int iter)
     err = cudaDeviceSynchronize();
 }
 
-void Benchmark11::firstDevice(){
-    cudaSetDevice (0);
+
+
+void Benchmark11::execute_async(int iter)
+{
+    cudaSetDevice(0);            // Set device 0 as current
     cudaStreamAttachMemAsync(s1, x, sizeof(float) * N);
     cudaStreamAttachMemAsync(s1, x1, sizeof(float) * N);
-
-
     squareMulti<<<num_blocks, block_size_1d, 0, s1>>>(x, x1, N);
+
+
+    cudaSetDevice(1);            // Set device 1 as current
+    cudaDeviceEnablePeerAccess(0, 0);   // Enable peer-to-peer access
+    cudaStreamAttachMemAsync(s2, y, sizeof(float) * N);
+    cudaStreamAttachMemAsync(s2, y1, sizeof(float) * N);
+    squareMulti<<<num_blocks, block_size_1d, 0, s2>>>(y, y1, N);
+
     // Stream 1 waits stream 2;
     cudaEvent_t e1;
     cudaEventCreate(&e1);
     cudaEventRecord(e1, s2);
     cudaStreamWaitEvent(s1, e1, 0);
-
+    cudaSetDevice(0);  
     reduceMulti<<<num_blocks, block_size_1d, 0, s1>>>(x1, y1, res, N);
     cudaStreamSynchronize(s1);
-}
-
-void Benchmark11::secondDevice(){
-    cudaSetDevice (1);
-
-    cudaStreamAttachMemAsync(s2, y, sizeof(float) * N);
-    cudaStreamAttachMemAsync(s2, y1, sizeof(float) * N);
-
-    squareMulti<<<num_blocks, block_size_1d, 0, s2>>>(y, y1, N);
-
-}
-
-void Benchmark11::execute_async(int iter)
-{
-    std::vector<std::thread> threads;
-    int device_count = 0;
-    cudaGetDeviceCount(&device_count);
-    //printf("number of devices: %d\n",device_count);
-    // for (unsigned int device_id = 0; device_id < device_count; device_id++){
-    //     threads.push_back (std::thread ([&,device_id] () {
-    //         cudaSetDevice (device_id);
-    //         cudaStreamAttachMemAsync(s1, x, sizeof(float) * N);
-    //         cudaStreamAttachMemAsync(s1, x1, sizeof(float) * N);
-    //         cudaStreamAttachMemAsync(s2, y, sizeof(float) * N);
-    //         cudaStreamAttachMemAsync(s2, y1, sizeof(float) * N);
-
-    //         squareMulti<<<num_blocks, block_size_1d, 0, s1>>>(x, x1, N);
-    //         squareMulti<<<num_blocks, block_size_1d, 0, s2>>>(y, y1, N);
-    //         // Stream 1 waits stream 2;
-    //         cudaEvent_t e1;
-    //         cudaEventCreate(&e1);
-    //         cudaEventRecord(e1, s2);
-    //         cudaStreamWaitEvent(s1, e1, 0);
-
-    //         reduceMulti<<<num_blocks, block_size_1d, 0, s1>>>(x1, y1, res, N);
-    //         cudaStreamSynchronize(s1);
-    //     }));
-    // }
-    
-
-    // std::thread first (&Benchmark11::firstDevice);
-    // std::thread second (&Benchmark11::secondDevice);
-    firstDevice();
-    secondDevice();
-    // first.join();
-    // second.join();
-    
-    
-    // cudaStreamAttachMemAsync(s1, x, sizeof(float) * N);
-    // cudaStreamAttachMemAsync(s1, x1, sizeof(float) * N);
-    // cudaStreamAttachMemAsync(s2, y, sizeof(float) * N);
-    // cudaStreamAttachMemAsync(s2, y1, sizeof(float) * N);
-
-    // // cudaMemPrefetchAsync(x, sizeof(float) * N, 0, s1);
-    // // cudaMemPrefetchAsync(y, sizeof(float) * N, 0, s2);
-
-    // squareMulti<<<num_blocks, block_size_1d, 0, s1>>>(x, x1, N);
-    // squareMulti<<<num_blocks, block_size_1d, 0, s2>>>(y, y1, N);
-
-    // // Stream 1 waits stream 2;
-    // cudaEvent_t e1;
-    // cudaEventCreate(&e1);
-    // cudaEventRecord(e1, s2);
-    // cudaStreamWaitEvent(s1, e1, 0);
-
-    // reduceMulti<<<num_blocks, block_size_1d, 0, s1>>>(x1, y1, res, N);
-    // cudaStreamSynchronize(s1);
 }
 
 
