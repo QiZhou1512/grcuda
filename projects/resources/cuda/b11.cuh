@@ -12,8 +12,8 @@ public:
     void execute_async(int iter);
     void execute_cudagraph(int iter);
     void execute_cudagraph_manual(int iter);
-    void firstDevice();
-    void secondDevice();
+    void first();
+    void second();
     std::string print_result(bool short_form = false);
 
 private:
