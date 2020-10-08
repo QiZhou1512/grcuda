@@ -19,6 +19,7 @@ void Benchmark::run()
     // Initialization;
     start_tmp = clock_type::now();
     init();
+
     end_tmp = clock_type::now();
     if (debug && err) std::cout << "error=" << err << std::endl;
     if (debug) std::cout << "initialization time=" << chrono::duration_cast<chrono::microseconds>(end_tmp - start_tmp).count() / 1000 << " ms" << std::endl;
@@ -37,7 +38,6 @@ void Benchmark::run()
         end_tmp = clock_type::now();
         auto reset_time = chrono::duration_cast<chrono::microseconds>(end_tmp - start_tmp).count();
         if (debug) std::cout << "  reset=" << (float) reset_time / 1000 << " ms" << std::endl;
-
         // Execution;
         start_tmp = clock_type::now();
         switch (policy) {
