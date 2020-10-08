@@ -1,10 +1,10 @@
 #pragma once
-#include "../benchmark.cuh"
+#include "benchmark.cuh"
 
-class Benchmark1 : public Benchmark
+class Benchmark15 : public Benchmark
 {
 public:
-    //Benchmark1(Options &options) : Benchmark(options) {}
+    Benchmark15(Options &options) : Benchmark(options) {}
     void alloc();
     void init();
     void reset();
@@ -15,6 +15,8 @@ public:
     std::string print_result(bool short_form = false);
 
 private:
-    float *x, *y, *x1, *y1, *res;
-    cudaStream_t s1, s2;
+    int M = 10;
+    double **x, **y, *tmp_x;
+    cudaStream_t *s;
+
 };

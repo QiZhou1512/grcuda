@@ -11,6 +11,8 @@
 #include "b8.cuh"
 #include "b10.cuh"
 #include "b11.cuh"
+#include "b15.cuh"
+
 
 int main(int argc, char *argv[])
 {
@@ -43,6 +45,9 @@ int main(int argc, char *argv[])
         break;
     case BenchmarkEnum::B11:
         b = new Benchmark11(options);
+        break;
+    case BenchmarkEnum::B15:
+        b = new Benchmark15(options);
         break;
     default:
         break;
