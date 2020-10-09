@@ -196,7 +196,7 @@ void Benchmark17::init() {
     coo2csr(ptr2_tmp, idx2_tmp, val2_tmp, y, x, v, N, N, nnz);
 }
 
-void Benchmark7::reset() {
+void Benchmark17::reset() {
     for (int j = 0; j < nnz; j++) {
         idx[j] = idx_tmp[j];
         idx2[j] = idx2_tmp[j];
@@ -250,7 +250,6 @@ void Benchmark17::execute_sync(int iter) {
 
         divide_multi<<<num_blocks, block_size_1d>>>(hub2, hub1, hub_norm, N);
         err = cudaDeviceSynchronize();
-
         auth_norm[0] = 0;
         hub_norm[0] = 0;
         rowCounter1[0] = 0;

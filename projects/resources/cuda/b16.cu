@@ -178,6 +178,7 @@ void Benchmark16::init() {
     //init for device 0
     cudaSetDevice(0);            // Set device 0 as current
 
+
     for (int i = 0; i < num_classes; i++) {
         for (int j = 0; j < num_features; j++) {
             ridge_coeff[i * num_features + j] = (float)(rand()) / (float)(RAND_MAX);
