@@ -1,8 +1,8 @@
 FLAGS = -std=c++11 -O3 -arch=sm_70
 BIN_FOLDER=bin
-FILES=main.cu benchmark.cu b1.cu b5.cu b6.cu b7.cu b8.cu b10.cu b11.cu b15.cu b16.cu b17.cu
+FILES=main.cu benchmark.cu b1.cu b5.cu b6.cu b7.cu b8.cu b10.cu b11.cu b15.cu b16.cu b17.cu b18.cu b20.cu
 
-.PHONY: full all b1 b5 b6 b7 b8 b10 b11 b15 b16 b17
+.PHONY: full all b1 b5 b6 b7 b8 b10 b11 b15 b16 b17 b18 b20
 
 full:
 	nvcc $(FILES) $(FLAGS) -o $(BIN_FOLDER)/b;
@@ -19,6 +19,8 @@ all: \
 	b15
 	b16
 	b17
+	b18
+	b20
 
 b1: b1*
 	nvcc b1.cu $(FLAGS) -o $(BIN_FOLDER)/b1_default;
@@ -54,3 +56,9 @@ b16: b16*
 
 b17: b17*
 	nvcc b17.cu $(FLAGS) -o $(BIN_FOLDER)/b17;
+
+b18: b18*
+	nvcc b18.cu $(FLAGS) -o $(BIN_FOLDER)/b18;
+
+b20: b20*
+	nvcc b20.cu $(FLAGS) -o $(BIN_FOLDER)/b20;

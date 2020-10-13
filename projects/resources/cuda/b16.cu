@@ -159,7 +159,6 @@ void Benchmark16::alloc() {
     err = cudaMallocManaged(&r, sizeof(int) * N);
     //nb_class_log_prior not used in kernels
     err = cudaMallocManaged(&nb_class_log_prior, sizeof(float) * num_classes);
-
     err = cudaStreamCreate(&s1);
 
     cudaSetDevice(1);            // Set device 1 as current
