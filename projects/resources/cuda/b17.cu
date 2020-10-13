@@ -165,28 +165,31 @@ void Benchmark17::alloc() {
     val_tmp = (int *)malloc(sizeof(int) * nnz);
     val2_tmp = (int *)malloc(sizeof(int) * nnz);
 
-    err = cudaMallocManaged(&ptr, sizeof(int) * (N + 1));
+    cudaSetDevice(0);  
     err = cudaMallocManaged(&ptr2, sizeof(int) * (N + 1));
-    err = cudaMallocManaged(&idx, sizeof(int) * nnz);
     err = cudaMallocManaged(&idx2, sizeof(int) * nnz);
-    err = cudaMallocManaged(&val, sizeof(int) * nnz);
     err = cudaMallocManaged(&val2, sizeof(int) * nnz);
-    err = cudaMallocManaged(&rowCounter1, sizeof(int));
-    err = cudaMallocManaged(&rowCounter2, sizeof(int));
-
-    err = cudaMallocManaged(&auth1, sizeof(float) * N);
-    err = cudaMallocManaged(&auth2, sizeof(float) * N);
     err = cudaMallocManaged(&hub1, sizeof(float) * N);
-    err = cudaMallocManaged(&hub2, sizeof(float) * N);
+    err = cudaMallocManaged(&auth2, sizeof(float) * N);
+    err = cudaMallocManaged(&rowCounter1, sizeof(int));
     err = cudaMallocManaged(&auth_norm, sizeof(float));
+    err = cudaStreamCreate(&s1);
+
+    cudaSetDevice(1);  
+    err = cudaMallocManaged(&ptr, sizeof(int) * (N + 1));
+    err = cudaMallocManaged(&idx, sizeof(int) * nnz);
+    err = cudaMallocManaged(&val, sizeof(int) * nnz);
+    err = cudaMallocManaged(&auth1, sizeof(float) * N);
+    err = cudaMallocManaged(&hub2, sizeof(float) * N);
+    err = cudaMallocManaged(&rowCounter2, sizeof(int));
     err = cudaMallocManaged(&hub_norm, sizeof(float));
+    err = cudaStreamCreate(&s2);
+
 
     x = (int *)malloc(nnz * sizeof(int));
     y = (int *)malloc(nnz * sizeof(int));
     v = (int *)malloc(nnz * sizeof(int));
 
-    err = cudaStreamCreate(&s1);
-    err = cudaStreamCreate(&s2);
 }
 
 void Benchmark17::init() {
@@ -197,25 +200,35 @@ void Benchmark17::init() {
 }
 
 void Benchmark17::reset() {
+    cudaSetDevice(0);  
+    
     for (int j = 0; j < nnz; j++) {
-        idx[j] = idx_tmp[j];
         idx2[j] = idx2_tmp[j];
-        val[j] = val_tmp[j];
         val2[j] = val2_tmp[j];
     }
     for (int j = 0; j < N + 1; j++) {
-        ptr[j] = ptr_tmp[j];
         ptr2[j] = ptr2_tmp[j];
     }
     for (int i = 0; i < N; i++) {
-        auth1[i] = 1;
         auth2[i] = 1;
         hub1[i] = 1;
-        hub2[i] = 1;
     }
     auth_norm[0] = 0;
-    hub_norm[0] = 0;
     rowCounter1[0] = 0;
+    cudaSetDevice(1);  
+
+    for (int j = 0; j < nnz; j++) {
+        idx[j] = idx_tmp[j];
+        val[j] = val_tmp[j];
+    }
+    for (int j = 0; j < N + 1; j++) {
+        ptr[j] = ptr_tmp[j];
+    }
+    for (int i = 0; i < N; i++) {
+        auth1[i] = 1;
+        hub2[i] = 1;
+    }
+    hub_norm[0] = 0;
     rowCounter2[0] = 0;
 }
 
@@ -250,6 +263,7 @@ void Benchmark17::execute_sync(int iter) {
 
         divide_multi<<<num_blocks, block_size_1d>>>(hub2, hub1, hub_norm, N);
         err = cudaDeviceSynchronize();
+
         auth_norm[0] = 0;
         hub_norm[0] = 0;
         rowCounter1[0] = 0;
@@ -267,50 +281,63 @@ void Benchmark17::execute_async(int iter) {
         // cudaMemPrefetchAsync(hub2, N * sizeof(float), 0, s2);
         // cudaMemPrefetchAsync(auth_norm, sizeof(float), 0, s1);
         // cudaMemPrefetchAsync(hub_norm, sizeof(float), 0, s2);
-
+        cudaSetDevice(0);  
         cudaStreamAttachMemAsync(s1, ptr2, 0);
         cudaStreamAttachMemAsync(s1, idx2, 0);
         cudaStreamAttachMemAsync(s1, val2, 0);
         cudaStreamAttachMemAsync(s1, hub1, 0);
         cudaStreamAttachMemAsync(s1, auth2, 0);
+        cudaStreamAttachMemAsync(s1, rowCounter1, 0);
+        cudaStreamAttachMemAsync(s1, auth_norm, 0);
+        cudaEvent_t e1;
+        cudaEventCreate(&e1);
 
+        cudaSetDevice(1);  
         cudaStreamAttachMemAsync(s2, ptr, 0);
         cudaStreamAttachMemAsync(s2, idx, 0);
         cudaStreamAttachMemAsync(s2, val, 0);
         cudaStreamAttachMemAsync(s2, auth1, 0);
         cudaStreamAttachMemAsync(s2, hub2, 0);
-
-        cudaEvent_t e1, e2;
-        cudaEventCreate(&e1);
+        cudaStreamAttachMemAsync(s2, rowCounter2, 0);
+        cudaStreamAttachMemAsync(s2, hub_norm, 0);
+        cudaEvent_t e2;
         cudaEventCreate(&e2);
 
         int nb = ceil(N / ((float)block_size_1d));
-
+        cudaSetDevice(0);  
         // spmv<<<nb, block_size_1d, 0, s1>>>(ptr2, idx2, val2, hub1, auth2, N, nnz);
         spmv3_multi<<<nb, block_size_1d, block_size_1d * sizeof(float), s1>>>(rowCounter1, ptr2, idx2, val2, hub1, auth2, N);
         err = cudaEventRecord(e1, s1);
+
+        cudaSetDevice(1);  
         // spmv<<<nb, block_size_1d, 0, s2>>>(ptr, idx, val, auth1, hub2, N, nnz);
         spmv3_multi<<<nb, block_size_1d, block_size_1d * sizeof(float), s2>>>(rowCounter2, ptr, idx, val, auth1, hub2, N);
         err = cudaEventRecord(e2, s2);
 
+        cudaSetDevice(0);  
         sum_multi<<<num_blocks, block_size_1d, 0, s1>>>(auth2, auth_norm, N);
-
+        cudaSetDevice(1);  
         sum_multi<<<num_blocks, block_size_1d, 0, s2>>>(hub2, hub_norm, N);
 
         // Stream 1 waits stream 2;
+        cudaSetDevice(0);  
         err = cudaStreamWaitEvent(s1, e2, 0);
         cudaStreamAttachMemAsync(s1, auth1, 0);
         divide_multi<<<num_blocks, block_size_1d, 0, s1>>>(auth2, auth1, auth_norm, N);
         // Stream 2 waits stream 1;
+        cudaSetDevice(1);  
         err = cudaStreamWaitEvent(s2, e1, 0);
         cudaStreamAttachMemAsync(s2, hub1, 0);
         divide_multi<<<num_blocks, block_size_1d, 0, s2>>>(hub2, hub1, hub_norm, N);
-
+        
+        cudaSetDevice(0);  
         err = cudaStreamSynchronize(s1);
-        err = cudaStreamSynchronize(s2);
         auth_norm[0] = 0;
-        hub_norm[0] = 0;
         rowCounter1[0] = 0;
+
+        cudaSetDevice(1);  
+        err = cudaStreamSynchronize(s2);
+        hub_norm[0] = 0;
         rowCounter2[0] = 0;
 
         if (debug && err) std::cout << err << std::endl;

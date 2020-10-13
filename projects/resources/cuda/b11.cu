@@ -128,7 +128,6 @@ void Benchmark11::execute_async(int iter)
 
 
     cudaSetDevice(1);            // Set device 1 as current
-    cudaDeviceEnablePeerAccess(0, 0);   // Enable peer-to-peer access
     cudaStreamAttachMemAsync(s2, y, sizeof(float) * N);
     cudaStreamAttachMemAsync(s2, y1, sizeof(float) * N);
     squareMulti<<<num_blocks, block_size_1d, 0, s2>>>(y, y1, N);
@@ -139,6 +138,9 @@ void Benchmark11::execute_async(int iter)
     cudaEventRecord(e1, s2);
     cudaStreamWaitEvent(s1, e1, 0);
     cudaSetDevice(0); 
+
+    cudaStreamAttachMemAsync(s1, y1, sizeof(float) * N);
+
     reduceMulti<<<num_blocks, block_size_1d, 0, s1>>>(x1, y1, res, N);
     cudaStreamSynchronize(s1);
 
