@@ -119,8 +119,7 @@ void Benchmark11::second(){
 }
 
 void Benchmark11::execute_async(int iter)
-{
-    
+{    
     cudaSetDevice(0);            // Set device 0 as current
     cudaStreamAttachMemAsync(s1, x, sizeof(float) * N);
     cudaStreamAttachMemAsync(s1, x1, sizeof(float) * N);

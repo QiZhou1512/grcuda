@@ -18,7 +18,7 @@ class Benchmark18 : public Benchmark {
     int kernel_large_diameter = 5;
     int kernel_unsharpen_diameter = 3;
 
-    float *image, *image2, *image3, *image_unsharpen, *mask_small, *mask_large, *mask_unsharpen, *blurred_small, *blurred_large, *blurred_unsharpen;
+    float *image,*image_gpu0, *image_gpu1, *image2, *image3, *image_unsharpen, *mask_small, *mask_large, *mask_unsharpen, *blurred_small, *blurred_large, *blurred_unsharpen;
     float *kernel_small, *kernel_large, *kernel_unsharpen, *maximum, *minimum;
     cudaStream_t s1, s2, s3, s4, s5;
 

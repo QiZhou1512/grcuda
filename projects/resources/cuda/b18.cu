@@ -168,39 +168,61 @@ extern "C" __global__ void reset_image_multi(float *x, int n) {
 //////////////////////////////
 
 void Benchmark18::alloc() {
-    err = cudaMallocManaged(&image, sizeof(float) * N * N);
-    err = cudaMallocManaged(&image2, sizeof(float) * N * N);
-    err = cudaMallocManaged(&image3, sizeof(float) * N * N);
-    err = cudaMallocManaged(&image_unsharpen, sizeof(float) * N * N);
-    err = cudaMallocManaged(&mask_small, sizeof(float) * N * N);
-    err = cudaMallocManaged(&mask_large, sizeof(float) * N * N);
-    err = cudaMallocManaged(&mask_unsharpen, sizeof(float) * N * N);
+    cudaSetDevice(0);            // Set device 0 as current
+    //s1
     err = cudaMallocManaged(&blurred_small, sizeof(float) * N * N);
-    err = cudaMallocManaged(&blurred_large, sizeof(float) * N * N);
+    err = cudaMallocManaged(&mask_small, sizeof(float) * N * N);
+    err = cudaMallocManaged(&image3, sizeof(float) * N * N);
+    //s3
     err = cudaMallocManaged(&blurred_unsharpen, sizeof(float) * N * N);
-
+    err = cudaMallocManaged(&image_unsharpen, sizeof(float) * N * N);
     err = cudaMallocManaged(&kernel_small, sizeof(float) * kernel_small_diameter * kernel_small_diameter);
-    err = cudaMallocManaged(&kernel_large, sizeof(float) * kernel_large_diameter * kernel_large_diameter);
+
     err = cudaMallocManaged(&kernel_unsharpen, sizeof(float) * kernel_unsharpen_diameter * kernel_unsharpen_diameter);
-    err = cudaMallocManaged(&maximum, sizeof(float));
-    err = cudaMallocManaged(&minimum, sizeof(float));
+    err = cudaMallocManaged(&image_gpu0, sizeof(float) * N * N);
 
     err = cudaStreamCreate(&s1);
-    err = cudaStreamCreate(&s2);
     err = cudaStreamCreate(&s3);
+
+    cudaSetDevice(1);            // Set device 1 as current
+    //s2
+    err = cudaMallocManaged(&blurred_large, sizeof(float) * N * N);
+    err = cudaMallocManaged(&mask_large, sizeof(float) * N * N);
+    err = cudaMallocManaged(&image2, sizeof(float) * N * N);
+    err = cudaMallocManaged(&kernel_large, sizeof(float) * kernel_large_diameter * kernel_large_diameter);
+    err = cudaMallocManaged(&maximum, sizeof(float));
+    err = cudaMallocManaged(&minimum, sizeof(float));
+    err = cudaMallocManaged(&image_gpu1, sizeof(float) * N * N);
+
+    //image duplicated for only read
+    //err = cudaMallocManaged(&image, sizeof(float) * N * N);
+
+    //err = cudaMallocManaged(&mask_unsharpen, sizeof(float) * N * N);
+    err = cudaStreamCreate(&s2);
     err = cudaStreamCreate(&s4);
     err = cudaStreamCreate(&s5);
+
 }
 
 void Benchmark18::init() {
+    cudaSetDevice(0);            // Set device 0 as current
+
     for (int i = 0; i < N; i++) {
         for (int j = 0; j < N; j++) {
-            image[i * N + j] = (float)(rand()) / (float)(RAND_MAX);
+            image_gpu0[i * N + j] = (float)(rand()) / (float)(RAND_MAX);
         }
     }
     gaussian_kernel(kernel_small, kernel_small_diameter, 1);
-    gaussian_kernel(kernel_large, kernel_large_diameter, 10);
     gaussian_kernel(kernel_unsharpen, kernel_unsharpen_diameter, 5);
+
+    cudaSetDevice(1);            // Set device 1 as current
+
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N; j++) {
+            image_gpu1[i * N + j] = (float)(rand()) / (float)(RAND_MAX);
+        }
+    }
+    gaussian_kernel(kernel_large, kernel_large_diameter, 10);
 }
 
 void Benchmark18::reset() {
@@ -209,11 +231,14 @@ void Benchmark18::reset() {
     //         image3[i * N + j] = 0;
     //     }
     // }
+    cudaSetDevice(0);            // Set device 0 as current
     memset(image3, 0, N * N * sizeof(float));
-    *maximum = 0;
-    *minimum = 0;
     reset_image_multi<<<num_blocks, block_size_1d>>>(image3, N * N);
     cudaDeviceSynchronize();
+
+    cudaSetDevice(1);            // Set device 1 as current
+    *maximum = 0;
+    *minimum = 0;
 }
 
 void Benchmark18::execute_sync(int iter) {
@@ -265,23 +290,27 @@ void Benchmark18::execute_async(int iter) {
     int nb = num_blocks / 2;
     dim3 grid_size_2(nb, nb);
 
+    cudaSetDevice(0);            // Set device 0 as current
+
     cudaStreamAttachMemAsync(s1, blurred_small, 0);
     cudaStreamAttachMemAsync(s1, mask_small, 0);
-    cudaStreamAttachMemAsync(s2, blurred_large, 0);
-    cudaStreamAttachMemAsync(s2, mask_large, 0);
-    cudaStreamAttachMemAsync(s2, image2, 0);
     cudaStreamAttachMemAsync(s3, blurred_unsharpen, 0);
     cudaStreamAttachMemAsync(s3, image_unsharpen, 0);
     cudaStreamAttachMemAsync(s1, image3, 0);
 
-    gaussian_blur_multi<<<grid_size_2, block_size_2d_dim, kernel_small_diameter * kernel_small_diameter * sizeof(float), s1>>>(image, blurred_small, N, N, kernel_small, kernel_small_diameter);
+    cudaSetDevice(1);            // Set device 1 as current
 
-    gaussian_blur_multi<<<grid_size_2, block_size_2d_dim, kernel_large_diameter * kernel_large_diameter * sizeof(float), s2>>>(image, blurred_large, N, N, kernel_large, kernel_large_diameter);
+    cudaStreamAttachMemAsync(s2, blurred_large, 0);
+    cudaStreamAttachMemAsync(s2, mask_large, 0);
+    cudaStreamAttachMemAsync(s2, image2, 0);
 
-    gaussian_blur_multi<<<grid_size_2, block_size_2d_dim, kernel_unsharpen_diameter * kernel_unsharpen_diameter * sizeof(float), s3>>>(image, blurred_unsharpen, N, N, kernel_unsharpen, kernel_unsharpen_diameter);
+    cudaSetDevice(0);            // Set device 0 as current
 
+    gaussian_blur_multi<<<grid_size_2, block_size_2d_dim, kernel_small_diameter * kernel_small_diameter * sizeof(float), s1>>>(image_gpu0, blurred_small, N, N, kernel_small, kernel_small_diameter);
+    gaussian_blur_multi<<<grid_size_2, block_size_2d_dim, kernel_unsharpen_diameter * kernel_unsharpen_diameter * sizeof(float), s3>>>(image_gpu0, blurred_unsharpen, N, N, kernel_unsharpen, kernel_unsharpen_diameter);
     sobel_multi<<<grid_size_2, block_size_2d_dim, 0, s1>>>(blurred_small, mask_small, N, N);
-
+    cudaSetDevice(1);            // Set device 1 as current
+    gaussian_blur_multi<<<grid_size_2, block_size_2d_dim, kernel_large_diameter * kernel_large_diameter * sizeof(float), s2>>>(image_gpu1, blurred_large, N, N, kernel_large, kernel_large_diameter);
     sobel_multi<<<grid_size_2, block_size_2d_dim, 0, s2>>>(blurred_large, mask_large, N, N);
 
     cudaEvent_t e1, e2, e3, e4, e5;
@@ -306,14 +335,20 @@ void Benchmark18::execute_async(int iter) {
 
     extend_multi<<<num_blocks, block_size_1d, 0, s2>>>(mask_large, minimum, maximum, N * N);
 
-    unsharpen_multi<<<num_blocks, block_size_1d, 0, s3>>>(image, blurred_unsharpen, image_unsharpen, 0.5, N * N);
+    cudaSetDevice(0);            // Set device 0 as current
+    unsharpen_multi<<<num_blocks, block_size_1d, 0, s3>>>(image_gpu0, blurred_unsharpen, image_unsharpen, 0.5, N * N);
     cudaEventRecord(e3, s3);
     cudaStreamWaitEvent(s2, e3, 0);
+
+    cudaSetDevice(1);            // Set device 1 as current
+
     combine_multi<<<num_blocks, block_size_1d, 0, s2>>>(image_unsharpen, blurred_large, mask_large, image2, N * N);
     cudaEventRecord(e4, s2);
     cudaStreamWaitEvent(s1, e4, 0);
-    cudaStreamAttachMemAsync(s1, image2, 0);
 
+    cudaSetDevice(0);            // Set device 0 as current
+
+    cudaStreamAttachMemAsync(s1, image2, 0);
     combine_multi<<<num_blocks, block_size_1d, 0, s1>>>(image2, blurred_small, mask_small, image3, N * N);
 
     // Extra
