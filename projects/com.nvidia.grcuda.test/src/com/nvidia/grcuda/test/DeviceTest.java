@@ -79,6 +79,7 @@ public class DeviceTest {
                 Value prop = device.getMember("properties");
                 // Sanity tests on some of the properties
                 // device name is a non-zero string
+
                 assertTrue(prop.getMember("deviceName").asString().length() > 0);
 
                 // compute capability is at least compute Kepler (3.0)

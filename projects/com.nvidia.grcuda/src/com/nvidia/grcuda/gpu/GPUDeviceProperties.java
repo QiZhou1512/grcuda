@@ -28,6 +28,7 @@
  */
 package com.nvidia.grcuda.gpu;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -35,6 +36,7 @@ import java.util.List;
 import java.util.Optional;
 
 import com.nvidia.grcuda.gpu.CUDARuntime.CUDADeviceAttribute;
+import com.nvidia.grcuda.gpu.stream.CUDAStream;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.interop.InteropLibrary;
@@ -53,6 +55,8 @@ public final class GPUDeviceProperties implements TruffleObject {
     private static final PropertySet PROPERTY_SET = new PropertySet();
 
     private final HashMap<String, Object> properties = new HashMap<>();
+    private final ArrayList<CUDAStream> associatedStreams = new ArrayList<CUDAStream>();
+
 
     public GPUDeviceProperties(int deviceId, CUDARuntime runtime) {
         this.deviceId = deviceId;
@@ -98,6 +102,22 @@ public final class GPUDeviceProperties implements TruffleObject {
     @Override
     public String toString() {
         return "GPUDeviceProperties(deviceId=" + deviceId + ")";
+    }
+
+    public Long getFreeDeviceMemory(){
+        return runtime.cudaMemGetInfo().getFreeBytes();
+    }
+
+    public Long getTotalDeviceMemory(){
+        return runtime.cudaMemGetInfo().getTotalBytes();
+    }
+
+    public void addStream(CUDAStream stream){
+        associatedStreams.add(stream);
+    }
+
+    public ArrayList<CUDAStream> getStreamsAssociated(){
+        return this.associatedStreams;
     }
 
     @ExportLibrary(InteropLibrary.class)

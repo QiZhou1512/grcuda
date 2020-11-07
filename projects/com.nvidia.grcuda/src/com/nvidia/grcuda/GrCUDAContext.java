@@ -39,6 +39,8 @@ import com.nvidia.grcuda.functions.GetDevicesFunction;
 import com.nvidia.grcuda.functions.map.MapFunction;
 import com.nvidia.grcuda.functions.map.ShredFunction;
 import com.nvidia.grcuda.gpu.CUDARuntime;
+import com.nvidia.grcuda.gpu.Device;
+import com.nvidia.grcuda.gpu.GrCUDADevicesManager;
 import com.nvidia.grcuda.gpu.computation.dependency.DependencyPolicyEnum;
 import com.nvidia.grcuda.gpu.computation.prefetch.PrefetcherEnum;
 import com.nvidia.grcuda.gpu.executioncontext.AbstractGrCUDAExecutionContext;
@@ -81,6 +83,7 @@ public final class GrCUDAContext {
     private final RetrieveParentStreamPolicyEnum retrieveParentStreamPolicyEnum;
     private final boolean forceStreamAttach;
     private final boolean inputPrefetch;
+    private final GrCUDADevicesManager grCUDADevicesManager;
 
     // this is used to look up pre-existing call targets for "map" operations, see MapArrayNode
     private final ConcurrentHashMap<Class<?>, CallTarget> uncachedMapCallTargets = new ConcurrentHashMap<>();
@@ -141,6 +144,11 @@ public final class GrCUDAContext {
             new CUBLASRegistry(this).registerCUBLASFunctions(blas);
         }
         this.rootNamespace = namespace;
+
+        Device device = new Device(0, getCUDARuntime());
+        System.out.println(device.getProperties().getFreeDeviceMemory());
+        grCUDADevicesManager = new GrCUDADevicesManager(getCUDARuntime());
+
     }
 
     public Env getEnv() {
