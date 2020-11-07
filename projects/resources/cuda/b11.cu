@@ -136,16 +136,14 @@ void Benchmark11::execute_async(int iter)
     cudaEventCreate(&e1);
     cudaEventRecord(e1, s2);
     cudaStreamWaitEvent(s1, e1, 0);
-
     cudaSetDevice(0); 
-    cudaMemPrefetchAsync(y1, 
-        sizeof(float) * N, 
-        0, 
-        s1);
-    //cudaStreamAttachMemAsync(s1, y1, sizeof(float) * N);
+
+    cudaStreamAttachMemAsync(s1, y1, sizeof(float) * N);
 
     reduceMulti<<<num_blocks, block_size_1d, 0, s1>>>(x1, y1, res, N);
     cudaStreamSynchronize(s1);
+
+
 }
 
 

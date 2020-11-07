@@ -45,12 +45,8 @@ void Benchmark::run() {
         reset();
         end_tmp = clock_type::now();
         auto reset_time = chrono::duration_cast<chrono::microseconds>(end_tmp - start_tmp).count();
-<<<<<<< HEAD
         if (debug) std::cout << "  reset=" << (float)reset_time / 1000 << " ms" << std::endl;
 
-=======
-        if (debug) std::cout << "  reset=" << (float) reset_time / 1000 << " ms" << std::endl;
->>>>>>> benchmark 16 and starting benchmark 17
         // Execution;
         start_tmp = clock_type::now();
         switch (policy) {

@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 FLAGS = -std=c++11 -O3 -arch=sm_70
+=======
+FLAGS = -std=c++11 -O3 -arch=sm_50 
+>>>>>>> ea88569f649e2dc9b3ebb700a7eb2d7b7db29623
 BIN_FOLDER=bin
 FILES=main.cu benchmark.cu b1.cu b5.cu b6.cu b7.cu b8.cu b10.cu b11.cu b15.cu b16.cu b17.cu b18.cu b20.cu
 
