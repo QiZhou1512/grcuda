@@ -113,8 +113,6 @@ public final class GrCUDAContext {
         System.out.println("-- using " + executionPolicy.getName() + " execution policy");
 
 
-        //init device manager
-        grCUDADevicesManager = new GrCUDADevicesManager(getCUDARuntime());
 
         switch (executionPolicy) {
             case SYNC:
@@ -151,6 +149,8 @@ public final class GrCUDAContext {
         this.rootNamespace = namespace;
 
 
+        //init device manager
+        grCUDADevicesManager = new GrCUDADevicesManager(getCUDARuntime());
 
     }
 
