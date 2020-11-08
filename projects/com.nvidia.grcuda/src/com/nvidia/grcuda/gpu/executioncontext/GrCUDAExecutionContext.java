@@ -24,25 +24,28 @@ public class GrCUDAExecutionContext extends AbstractGrCUDAExecutionContext {
     private final GrCUDAStreamManager streamManager;
     private final GrCUDADevicesManager devicesManager;
     public GrCUDAExecutionContext(GrCUDAContext context, TruffleLanguage.Env env, DependencyPolicyEnum dependencyPolicy, PrefetcherEnum inputPrefetch) {
+
         this(new CUDARuntime(context, env), new GrCUDAThreadManager(context), dependencyPolicy, inputPrefetch);
-        System.out.println("first");
+
+
     }
 
     public GrCUDAExecutionContext(CUDARuntime cudaRuntime, GrCUDAThreadManager threadManager, DependencyPolicyEnum dependencyPolicy, PrefetcherEnum inputPrefetch) {
         this(cudaRuntime, threadManager, new GrCUDAStreamManager(cudaRuntime), dependencyPolicy, inputPrefetch);
-        System.out.println("second");
     }
 
     public GrCUDAExecutionContext(CUDARuntime cudaRuntime, GrCUDAThreadManager threadManager, GrCUDAStreamManager streamManager, DependencyPolicyEnum dependencyPolicy) {
         super(cudaRuntime, dependencyPolicy, PrefetcherEnum.NONE);
         this.streamManager = streamManager;
-        System.out.println("third");
+        this.devicesManager = cudaRuntime.getContext().getGrCUDADevicesManager();
+
     }
 
     public GrCUDAExecutionContext(CUDARuntime cudaRuntime, GrCUDAThreadManager threadManager, GrCUDAStreamManager streamManager, DependencyPolicyEnum dependencyPolicy, PrefetcherEnum inputPrefetch) {
         super(cudaRuntime, dependencyPolicy, inputPrefetch);
         this.streamManager = streamManager;
-        System.out.println("fourth");
+        this.devicesManager = cudaRuntime.getContext().getGrCUDADevicesManager();
+
     }
 
     /**
@@ -67,7 +70,7 @@ public class GrCUDAExecutionContext extends AbstractGrCUDAExecutionContext {
         // Associate a CUDA event to this computation, if performed asynchronously;
         streamManager.assignEvent(vertex);
 
-//        System.out.println("-- running " + vertex.getComputation());
+        System.out.println("-- running " + vertex.getComputation());
 
         return result;
     }
