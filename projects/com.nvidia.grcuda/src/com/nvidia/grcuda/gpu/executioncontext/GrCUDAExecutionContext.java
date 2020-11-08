@@ -3,6 +3,7 @@ package com.nvidia.grcuda.gpu.executioncontext;
 import com.nvidia.grcuda.GrCUDAContext;
 import com.nvidia.grcuda.GrCUDAThreadManager;
 import com.nvidia.grcuda.gpu.CUDARuntime;
+import com.nvidia.grcuda.gpu.GrCUDADevicesManager;
 import com.nvidia.grcuda.gpu.computation.GrCUDAComputationalElement;
 import com.nvidia.grcuda.gpu.computation.dependency.DependencyPolicyEnum;
 import com.nvidia.grcuda.gpu.computation.prefetch.PrefetcherEnum;
@@ -21,23 +22,27 @@ public class GrCUDAExecutionContext extends AbstractGrCUDAExecutionContext {
      * scheduling computations on different streams;
      */
     private final GrCUDAStreamManager streamManager;
-
+    private final GrCUDADevicesManager devicesManager;
     public GrCUDAExecutionContext(GrCUDAContext context, TruffleLanguage.Env env, DependencyPolicyEnum dependencyPolicy, PrefetcherEnum inputPrefetch) {
         this(new CUDARuntime(context, env), new GrCUDAThreadManager(context), dependencyPolicy, inputPrefetch);
+        System.out.println("first");
     }
 
     public GrCUDAExecutionContext(CUDARuntime cudaRuntime, GrCUDAThreadManager threadManager, DependencyPolicyEnum dependencyPolicy, PrefetcherEnum inputPrefetch) {
         this(cudaRuntime, threadManager, new GrCUDAStreamManager(cudaRuntime), dependencyPolicy, inputPrefetch);
+        System.out.println("second");
     }
 
     public GrCUDAExecutionContext(CUDARuntime cudaRuntime, GrCUDAThreadManager threadManager, GrCUDAStreamManager streamManager, DependencyPolicyEnum dependencyPolicy) {
         super(cudaRuntime, dependencyPolicy, PrefetcherEnum.NONE);
         this.streamManager = streamManager;
+        System.out.println("third");
     }
 
     public GrCUDAExecutionContext(CUDARuntime cudaRuntime, GrCUDAThreadManager threadManager, GrCUDAStreamManager streamManager, DependencyPolicyEnum dependencyPolicy, PrefetcherEnum inputPrefetch) {
         super(cudaRuntime, dependencyPolicy, inputPrefetch);
         this.streamManager = streamManager;
+        System.out.println("fourth");
     }
 
     /**

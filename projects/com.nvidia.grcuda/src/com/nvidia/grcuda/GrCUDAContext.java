@@ -111,6 +111,11 @@ public final class GrCUDAContext {
         ExecutionPolicyEnum executionPolicy = parseExecutionPolicy(env.getOptions().get(GrCUDAOptions.ExecutionPolicy));
         // Initialize the execution policy;
         System.out.println("-- using " + executionPolicy.getName() + " execution policy");
+
+
+        //init device manager
+        grCUDADevicesManager = new GrCUDADevicesManager(getCUDARuntime());
+
         switch (executionPolicy) {
             case SYNC:
                 this.grCUDAExecutionContext = new SyncGrCUDAExecutionContext(this, env, dependencyPolicy, inputPrefetch ? PrefetcherEnum.SYNC : PrefetcherEnum.NONE);
@@ -145,10 +150,12 @@ public final class GrCUDAContext {
         }
         this.rootNamespace = namespace;
 
-        Device device = new Device(0, getCUDARuntime());
-        System.out.println(device.getProperties().getFreeDeviceMemory());
-        grCUDADevicesManager = new GrCUDADevicesManager(getCUDARuntime());
 
+
+    }
+
+    public GrCUDADevicesManager getGrCUDADevicesManager(){
+        return grCUDADevicesManager;
     }
 
     public Env getEnv() {
