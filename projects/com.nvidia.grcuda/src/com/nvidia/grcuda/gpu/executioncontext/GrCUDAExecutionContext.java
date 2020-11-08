@@ -24,6 +24,7 @@ public class GrCUDAExecutionContext extends AbstractGrCUDAExecutionContext {
     private final GrCUDAStreamManager streamManager;
     private final GrCUDADevicesManager devicesManager;
     public GrCUDAExecutionContext(GrCUDAContext context, TruffleLanguage.Env env, DependencyPolicyEnum dependencyPolicy, PrefetcherEnum inputPrefetch) {
+
         this(new CUDARuntime(context, env), new GrCUDAThreadManager(context), dependencyPolicy, inputPrefetch);
     }
 
@@ -34,13 +35,15 @@ public class GrCUDAExecutionContext extends AbstractGrCUDAExecutionContext {
     public GrCUDAExecutionContext(CUDARuntime cudaRuntime, GrCUDAThreadManager threadManager, GrCUDAStreamManager streamManager, DependencyPolicyEnum dependencyPolicy) {
         super(cudaRuntime, dependencyPolicy, PrefetcherEnum.NONE);
         this.streamManager = streamManager;
-	this.devicesManager = cudaRuntime.getContext().getGrCUDADevicesManager();
+        this.devicesManager = cudaRuntime.getContext().getGrCUDADevicesManager();
+
     }
 
     public GrCUDAExecutionContext(CUDARuntime cudaRuntime, GrCUDAThreadManager threadManager, GrCUDAStreamManager streamManager, DependencyPolicyEnum dependencyPolicy, PrefetcherEnum inputPrefetch) {
         super(cudaRuntime, dependencyPolicy, inputPrefetch);
         this.streamManager = streamManager;
-	this.devicesManager = cudaRuntime.getContext().getGrCUDADevicesManager();
+        this.devicesManager = cudaRuntime.getContext().getGrCUDADevicesManager();
+
     }
 
     /**
@@ -65,7 +68,7 @@ public class GrCUDAExecutionContext extends AbstractGrCUDAExecutionContext {
         // Associate a CUDA event to this computation, if performed asynchronously;
         streamManager.assignEvent(vertex);
 
-//        System.out.println("-- running " + vertex.getComputation());
+        System.out.println("-- running " + vertex.getComputation());
 
         return result;
     }
