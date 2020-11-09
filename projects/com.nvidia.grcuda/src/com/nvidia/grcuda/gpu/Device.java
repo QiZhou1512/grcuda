@@ -30,6 +30,7 @@ package com.nvidia.grcuda.gpu;
 
 import com.nvidia.grcuda.MemberSet;
 import com.nvidia.grcuda.NoneValue;
+import com.nvidia.grcuda.gpu.stream.CUDAStream;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Shared;
@@ -44,6 +45,8 @@ import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.profiles.ValueProfile;
 
+import java.util.ArrayList;
+
 @ExportLibrary(InteropLibrary.class)
 public final class Device implements TruffleObject {
 
@@ -56,12 +59,13 @@ public final class Device implements TruffleObject {
     private final int deviceId;
     private final GPUDeviceProperties properties;
     private final CUDARuntime runtime;
-
     public Device(int deviceId, CUDARuntime runtime) {
         this.deviceId = deviceId;
         this.runtime = runtime;
         this.properties = new GPUDeviceProperties(deviceId, runtime);
     }
+
+
 
     public GPUDeviceProperties getProperties() {
         return properties;

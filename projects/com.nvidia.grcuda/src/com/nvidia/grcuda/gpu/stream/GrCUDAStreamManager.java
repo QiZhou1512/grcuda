@@ -2,6 +2,7 @@ package com.nvidia.grcuda.gpu.stream;
 
 import com.nvidia.grcuda.CUDAEvent;
 import com.nvidia.grcuda.gpu.CUDARuntime;
+import com.nvidia.grcuda.gpu.GrCUDADevicesManager;
 import com.nvidia.grcuda.gpu.executioncontext.ExecutionDAG;
 import com.nvidia.grcuda.gpu.computation.GrCUDAComputationalElement;
 import jdk.nashorn.internal.runtime.regexp.joni.exception.ValueException;
@@ -38,13 +39,13 @@ public class GrCUDAStreamManager {
     private final RetrieveParentStream retrieveParentStream;
 
     public GrCUDAStreamManager(CUDARuntime runtime) { 
-        this(runtime, runtime.getContext().getRetrieveNewStreamPolicy(), runtime.getContext().getRetrieveParentStreamPolicyEnum());
+        this(runtime, runtime.getContext().getRetrieveNewStreamPolicy(), runtime.getContext().getRetrieveParentStreamPolicyEnum(),runtime.getContext().getGrCUDADevicesManager());
     }
 
     public GrCUDAStreamManager(
             CUDARuntime runtime,
             RetrieveNewStreamPolicyEnum retrieveNewStreamPolicyEnum,
-            RetrieveParentStreamPolicyEnum retrieveParentStreamPolicyEnum) {
+            RetrieveParentStreamPolicyEnum retrieveParentStreamPolicyEnum, GrCUDADevicesManager devicesManager) {
         this.runtime = runtime;
         // Get how streams are retrieved for computations without parents;
         switch(retrieveNewStreamPolicyEnum) {

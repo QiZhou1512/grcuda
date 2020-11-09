@@ -1,13 +1,17 @@
 package com.nvidia.grcuda.gpu;
 
+import com.nvidia.grcuda.gpu.stream.GrCUDAStreamManager;
+
 import java.util.ArrayList;
+import java.util.HashMap;
+
 /**
  * Manager of multiple GPUs, keeps track of various GPUs, the validity of the arrays that are stored in each of them
  *
  * */
 public class GrCUDADevicesManager {
     private final CUDARuntime runtime;
-    private final ArrayList<Device> deviceArrayList = new ArrayList<>();
+    private final HashMap<Device, GrCUDAStreamManager> deviceStreamManagerHashMap = new HashMap<>();
     private final Integer numberOfGPUs;
     private Integer currentDeviceId;
     public GrCUDADevicesManager(CUDARuntime runtime){
@@ -17,11 +21,9 @@ public class GrCUDADevicesManager {
         initDevices();
     }
 
-
-
     private void initDevices(){
         for(int i = 0; i<numberOfGPUs;i++) {
-            deviceArrayList.add(new Device(i, runtime));
+            deviceStreamManagerHashMap.put(new Device(i, runtime),new GrCUDAStreamManager(runtime));
         }
     }
 
@@ -37,5 +39,6 @@ public class GrCUDADevicesManager {
         runtime.cudaSetDevice(id);
         this.currentDeviceId = id;
     }
+
 
 }
