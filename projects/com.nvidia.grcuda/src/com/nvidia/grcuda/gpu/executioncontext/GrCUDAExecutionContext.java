@@ -68,7 +68,7 @@ public class GrCUDAExecutionContext extends AbstractGrCUDAExecutionContext {
         streamManager.assignEvent(vertex);
 
         //System.out.println("-- running " + vertex.getComputation());
-
+        devicesManager.getCurrentDeviceId();
         return result;
     }
 

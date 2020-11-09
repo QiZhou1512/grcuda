@@ -69,8 +69,6 @@ public class GrCUDAStreamManager {
             default:
                 this.retrieveParentStream = new DefaultRetrieveParentStream();
         }
-
-        System.out.println("stream policy: "+retrieveNewStreamPolicyEnum+ "policy"+retrieveParentStreamPolicyEnum);
     }
 
     /**
