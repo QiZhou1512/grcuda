@@ -45,7 +45,7 @@ public class GrCUDAStreamManager {
     public GrCUDAStreamManager(
             CUDARuntime runtime,
             RetrieveNewStreamPolicyEnum retrieveNewStreamPolicyEnum,
-            RetrieveParentStreamPolicyEnum retrieveParentStreamPolicyEnum, GrCUDADevicesManager devicesManager) {
+            RetrieveParentStreamPolicyEnum retrieveParentStreamPolicyEnum) {
         this.runtime = runtime;
         // Get how streams are retrieved for computations without parents;
         switch(retrieveNewStreamPolicyEnum) {
